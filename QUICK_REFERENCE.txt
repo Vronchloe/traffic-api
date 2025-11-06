@@ -1,0 +1,163 @@
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║     ADAPTIVE IoT TRAFFIC SIGNAL CONTROL - QUICK REFERENCE CARD             ║
+║                 Student: Arman Ranjan (23BCE1731)                          ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌─ QUICK START ─────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  FIRST TIME:   Read WINDOWS_SETUP_GUIDE.txt (45 minutes)                 │
+│  EVERY TIME:   Open 4 Command Prompts and run in order:                   │
+│                                                                             │
+│    1. mosquitto -v                                                         │
+│    2. cd my-traffic-project && python dashboard.py                        │
+│    3. cd my-traffic-project && python edge_controller.py                  │
+│    4. cd my-traffic-project && python virtual_sensor.py                   │
+│                                                                             │
+│    Then: Open browser to http://localhost:5000                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ FILES YOU HAVE ──────────────────────────────────────────────────────────┐
+│                                                                             │
+│  DOCUMENTATION:                                                            │
+│    • WINDOWS_SETUP_GUIDE.txt ................ Installation steps          │
+│    • Complete-Project-Report-With-Dashboard.pdf .... Full report          │
+│    • PROJECT-DELIVERY-SUMMARY.md ........... Features overview            │
+│                                                                             │
+│  PYTHON (Run these):                                                       │
+│    • dashboard.py ......................... Web server (port 5000)         │
+│    • edge_controller.py ................... Traffic algorithm             │
+│    • virtual_sensor.py .................... Sensor simulator              │
+│    • plot_results.py ...................... Graph generator               │
+│                                                                             │
+│  WEB (Auto-served by dashboard.py):                                       │
+│    • templates/index.html ................. Dashboard interface           │
+│    • static/css/style.css ................. Professional styling          │
+│    • static/js/script.js .................. Real-time updates             │
+│                                                                             │
+│  CONFIG (Adjust these if needed):                                         │
+│    • config/controller.yml ................ Control parameters            │
+│    • config/sensor.yml .................... Sensor settings               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DASHBOARD FEATURES ──────────────────────────────────────────────────────┐
+│                                                                             │
+│  LEFT PANEL:                          RIGHT PANEL:                        │
+│  • Intersection visualization        • System metrics (cycles, latency)   │
+│  • Traffic signals (live)            • Density Trend Chart               │
+│  • Status table                      • Green Time Allocation Chart        │
+│  • Density % per lane                • Latency Distribution Chart        │
+│  • Green times                       • Lane Performance Chart             │
+│  • Signal state indicators           • Export button                      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ WHAT HAPPENS WHEN RUNNING ───────────────────────────────────────────────┐
+│                                                                             │
+│  T+0s:   Mosquitto starts                                                  │
+│  T+5s:   Dashboard running on port 5000                                    │
+│  T+10s:  Controller connected                                              │
+│  T+15s:  Sensors publishing                                                │
+│  T+20s:  Dashboard shows first data                                        │
+│  T+60s:  First signal cycle calculated                                     │
+│  T+120s: Charts fully populated                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ TROUBLESHOOTING ─────────────────────────────────────────────────────────┐
+│                                                                             │
+│  Problem: Dashboard blank page                                             │
+│  → Try: http://127.0.0.1:5000 (not localhost)                             │
+│                                                                             │
+│  Problem: No data appearing                                                │
+│  → Check: All 4 windows running, wait 2 minutes                           │
+│                                                                             │
+│  Problem: Charts not updating                                              │
+│  → Try: Refresh browser (Ctrl+R), press F12 for console                   │
+│                                                                             │
+│  Problem: Signals not changing                                             │
+│  → Wait: 60 seconds for first cycle, check controller output              │
+│                                                                             │
+│  Problem: Port 5000 already in use                                         │
+│  → Kill: python.exe in Task Manager, wait 30 seconds, restart             │
+│                                                                             │
+│  Full help: See WINDOWS_SETUP_GUIDE.txt troubleshooting section           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SYSTEM REQUIREMENTS ─────────────────────────────────────────────────────┐
+│                                                                             │
+│  • Windows 10/11                                                          │
+│  • Python 3.10 or higher                                                  │
+│  • 4GB RAM (8GB recommended)                                              │
+│  • Mosquitto MQTT broker                                                  │
+│  • Web browser (Chrome, Firefox, Edge)                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ KEY PORTS ───────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  Port 1883  ← Mosquitto MQTT broker                                       │
+│  Port 5000  ← Dashboard web server (http://localhost:5000)               │
+│                                                                             │
+│  Make sure these ports are not used by other applications!               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ COMMANDS REFERENCE ──────────────────────────────────────────────────────┐
+│                                                                             │
+│  Start Mosquitto:                                                          │
+│    mosquitto -v                                                            │
+│                                                                             │
+│  Run Python script:                                                        │
+│    python script_name.py                                                   │
+│                                                                             │
+│  Stop any script:                                                          │
+│    Ctrl + C                                                                │
+│                                                                             │
+│  Navigate to folder:                                                       │
+│    cd path\to\folder                                                     │
+│                                                                             │
+│  Check if port is in use:                                                 │
+│    netstat -an | findstr 1883                                             │
+│    netstat -an | findstr 5000                                             │
+│                                                                             │
+│  View services:                                                            │
+│    services.msc                                                            │
+│                                                                             │
+│  Open Task Manager:                                                        │
+│    tasklist  OR  Ctrl+Shift+Esc                                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ EXPECTED PERFORMANCE ────────────────────────────────────────────────────┐
+│                                                                             │
+│  • MQTT Latency: 2-5ms (localhost), 30-100ms (WiFi)                      │
+│  • Message Loss: 0%                                                       │
+│  • Dashboard Update: Real-time (100ms refresh)                            │
+│  • CPU Usage: <5% single core                                             │
+│  • Memory: ~150MB total                                                   │
+│  • Scalability: 100+ intersections per broker                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DEMO TIPS ───────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  1. Start everything and let it run 2 minutes before showing              │
+│  2. Explain left panel (intersection visualization)                        │
+│  3. Explain right panel (charts and metrics)                               │
+│  4. Show the CSV export feature                                            │
+│  5. Answer: Why MQTT? → 95% smaller, 60% faster, less bandwidth          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                   Student: Arman Ranjan (23BCE1731)                        ║
+║                    Team: SoloNet-ATC - November 2025                       ║
+║                                                                            ║
+║  Next Step: Read WINDOWS_SETUP_GUIDE.txt to install everything           ║
+║  Questions: Check Complete-Project-Report-With-Dashboard.pdf              ║
+║  All Set? Run the 4 commands above and visit http://localhost:5000       ║
+╚════════════════════════════════════════════════════════════════════════════╝

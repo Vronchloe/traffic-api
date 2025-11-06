@@ -1,0 +1,31 @@
+system:
+  intersection_id: intersection_1
+  mqtt_broker: localhost
+  mqtt_port: 1883
+  qos_level: 1
+
+timing_parameters:
+  control_interval: 60      # Controller recalculates every 60 seconds
+  cycle_length: 60          # Total signal cycle is 60 seconds
+  sensor_publish_interval: 2
+  min_green: 10             # Minimum green time per lane
+  max_green: 60             # Maximum green time per lane
+  yellow_time: 3
+  all_red_time: 2
+
+algorithm:
+  type: proportional_allocation
+  description: Green time proportional to traffic density
+  moving_average_window: 30
+
+lanes:
+  - north
+  - south
+  - east
+  - west
+
+measurement:
+  enable_sequence_numbers: true
+  enable_timestamps: true
+  log_to_csv: true
+  csv_file: results/metrics.csv

@@ -1,0 +1,303 @@
+
+================================================================================
+ADAPTIVE TRAFFIC SIGNAL CONTROL - WINDOWS SETUP GUIDE
+Complete Step-by-Step Installation
+================================================================================
+
+IMPORTANT: Follow these steps in EXACT ORDER
+
+================================================================================
+STEP 1: INSTALL PYTHON (5 minutes)
+================================================================================
+
+1. Download Python from: https://www.python.org/downloads/
+   - Look for "Python 3.10" or higher
+   - Click the big yellow "Download Python X.X.X" button
+
+2. Run the installer:
+   - IMPORTANT: Check "Add Python to PATH" ✓✓✓
+   - Click "Install Now"
+
+3. Verify installation (Open Command Prompt):
+   - Press Windows Key + R
+   - Type: cmd
+   - Press Enter
+   - Type: python --version
+   - You should see: Python 3.10.x (or higher)
+
+================================================================================
+STEP 2: INSTALL MOSQUITTO MQTT BROKER (10 minutes)
+================================================================================
+
+1. Download from: https://mosquitto.org/download/
+   - Look for "Windows Installer"
+   - Download the .exe file
+
+2. Run installer:
+   - Click Next through all screens
+   - Keep defaults (installs to C:\Program Files\mosquitto)
+   - Finish installation
+
+3. Start Mosquitto:
+   - Press Windows Key + R
+   - Type: services.msc
+   - Find "Mosquitto Broker" in the list
+   - Right-click → Start (or Set to Automatic)
+
+4. Verify Mosquitto is running:
+   - Open Command Prompt
+   - Type: netstat -an | findstr 1883
+   - You should see a line with LISTENING and port 1883
+
+================================================================================
+STEP 3: INSTALL PYTHON LIBRARIES (5 minutes)
+================================================================================
+
+Open Command Prompt and run EACH command:
+
+1. pip install paho-mqtt
+2. pip install flask
+3. pip install python-socketio
+4. pip install python-socketio[client]
+5. pip install pyyaml
+6. pip install matplotlib
+7. pip install pandas
+8. pip install numpy
+
+Wait for each to complete before running the next.
+
+================================================================================
+STEP 4: CREATE PROJECT FOLDER (2 minutes)
+================================================================================
+
+1. Open Windows File Explorer
+2. Go to your Documents folder (or Desktop)
+3. Right-click → New Folder
+4. Name it: my-traffic-project
+5. Inside that folder, create 3 more folders:
+   - config
+   - results
+   - templates
+   - static (for CSS/JS)
+
+Your structure should look like:
+my-traffic-project/
+├── config/
+├── results/
+├── templates/
+├── static/
+│   ├── css/
+│   └── js/
+└── (your Python files go here)
+
+================================================================================
+STEP 5: COPY PROJECT FILES (5 minutes)
+================================================================================
+
+Copy these files into your my-traffic-project folder:
+- edge_controller.py
+- virtual_sensor.py
+- dashboard.py (the new Flask app)
+
+Copy these config files into my-traffic-project/config:
+- controller.yml
+- sensor.yml
+- topics_schema.md
+
+Copy these files into my-traffic-project/templates:
+- index.html
+- dashboard.html
+
+Copy these files into my-traffic-project/static/css:
+- style.css
+
+Copy these files into my-traffic-project/static/js:
+- script.js
+
+================================================================================
+STEP 6: VERIFY CONFIGURATION FILES (2 minutes)
+================================================================================
+
+Open each .yml file and verify:
+- controller.yml: mqtt_broker is "localhost" ✓
+- sensor.yml: broker is "localhost" ✓
+
+(They should already be correct)
+
+================================================================================
+STEP 7: FIRST TIME RUN - TEST BROKER (10 minutes)
+================================================================================
+
+1. Open 2 Command Prompt windows side by side
+
+WINDOW 1 - Subscribe to test messages:
+   - Navigate to Mosquitto folder: cd "C:\Program Files\mosquitto"
+   - Type: mosquitto_sub -t "test/message"
+   - Leave this running
+
+WINDOW 2 - Publish test message:
+   - In the same mosquitto folder: cd "C:\Program Files\mosquitto"
+   - Type: mosquitto_pub -t "test/message" -m "Hello MQTT"
+   - Switch to Window 1
+   - You should see: "Hello MQTT" appear
+
+SUCCESS! Mosquitto is working correctly.
+
+================================================================================
+STEP 8: RUN THE COMPLETE SYSTEM (First Time) (15 minutes)
+================================================================================
+
+NOTE: Mosquitto must ALWAYS be running. Check Services (services.msc) if needed.
+
+Open 4 Command Prompt windows and arrange them side by side:
+
+WINDOW 1 - Dashboard/Web Server:
+   - cd C:\Users\[YourUsername]\Documents\my-traffic-project
+   - python dashboard.py
+   - Wait for: "Running on http://127.0.0.1:5000"
+
+WINDOW 2 - Edge Controller:
+   - Wait 5 seconds after dashboard starts
+   - cd C:\Users\[YourUsername]\Documents\my-traffic-project
+   - python edge_controller.py
+   - Should see: "✓ Controller connected (rc=0)"
+
+WINDOW 3 - Virtual Sensors:
+   - Wait 10 seconds after controller starts
+   - cd C:\Users\[YourUsername]\Documents\my-traffic-project
+   - python virtual_sensor.py
+   - Should see density values publishing
+
+WINDOW 4 - Open Browser:
+   - Open your web browser (Chrome, Firefox, Edge)
+   - Go to: http://localhost:5000
+   - You should see: Real-time traffic dashboard
+   - Signals updating every 60 seconds
+   - Graphs showing live data
+
+================================================================================
+STEP 9: STOPPING THE SYSTEM (2 minutes)
+================================================================================
+
+To stop everything safely:
+
+1. In the browser: Click "Stop Simulation" button (if available)
+2. In each Command Prompt window: Press Ctrl+C
+3. Wait a few seconds for graceful shutdown
+4. Close windows
+
+DO NOT just close windows without Ctrl+C - this can cause connection issues.
+
+================================================================================
+TROUBLESHOOTING - COMMON WINDOWS ISSUES
+================================================================================
+
+PROBLEM: "Python is not recognized"
+SOLUTION: Python wasn't added to PATH
+- Reinstall Python and CHECK "Add Python to PATH" during installation
+
+PROBLEM: "Connection refused" or "Cannot connect to 1883"
+SOLUTION: Mosquitto not running
+- Open services.msc
+- Find "Mosquitto Broker"
+- Right-click → Start
+- Wait 10 seconds and try again
+
+PROBLEM: "Module not found: paho"
+SOLUTION: Library not installed
+- Run: pip install paho-mqtt
+- Wait for completion
+
+PROBLEM: "Address already in use" or "Port 5000 in use"
+SOLUTION: Another program using port 5000
+- Open Task Manager
+- Find python.exe
+- End Task
+- Wait 30 seconds, try again
+
+PROBLEM: Dashboard shows blank page
+SOLUTION: Browser not connecting to Flask
+- Close browser
+- Wait 5 seconds
+- Go to http://127.0.0.1:5000 (not localhost)
+- If still blank, check dashboard.py console for errors
+
+PROBLEM: Sensors not publishing data
+SOLUTION: Controller not running yet
+- Make sure controller.py started first
+- Wait 10 seconds after seeing "Controller connected"
+- Then start sensors
+
+================================================================================
+WINDOWS COMMAND REFERENCE
+================================================================================
+
+Navigate to folder:
+   cd C:\Users\YourName\Documents\my-traffic-project
+
+List files:
+   dir
+
+Run Python script:
+   python filename.py
+
+Stop running script:
+   Ctrl + C
+
+Check if port is open:
+   netstat -an | findstr 5000
+
+Check services status:
+   services.msc
+
+View running processes:
+   tasklist
+
+================================================================================
+WINDOWS DEFENDER / ANTIVIRUS ISSUES
+================================================================================
+
+If Windows Defender blocks Python or Mosquitto:
+
+1. Go to: Windows Defender → Virus & threat protection
+2. Click: Manage settings
+3. Add Exception → add your python.exe folder
+4. Add Exception → add Mosquitto installation folder
+
+This is safe - these are legitimate open-source programs.
+
+================================================================================
+SUCCESS CHECKLIST
+================================================================================
+
+✓ Python installed and in PATH
+✓ Mosquitto installed and running (services.msc shows it)
+✓ All Python libraries installed (pip install commands completed)
+✓ Project folders created with correct structure
+✓ All files copied to correct locations
+✓ Config files have correct settings (localhost:1883)
+✓ Mosquitto test message worked (Step 7)
+✓ Dashboard accessible at http://localhost:5000
+✓ All 4 windows running without errors
+✓ Sensors publishing data
+✓ Controller computing green times
+✓ Web dashboard showing real-time visualization
+
+If ALL checked: YOUR SYSTEM IS READY! 🎉
+
+================================================================================
+GETTING UPDATES / RESTARTING
+================================================================================
+
+To run system again after reboot:
+
+1. Wait for Windows to fully load
+2. Check services.msc - start Mosquitto if needed
+3. Open 4 Command Prompts
+4. Run in order: dashboard → controller → sensors
+5. Open browser to http://localhost:5000
+6. Done!
+
+The system will ALWAYS work the same way once setup is complete.
+
+================================================================================
