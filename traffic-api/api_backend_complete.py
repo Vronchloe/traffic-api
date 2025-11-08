@@ -21,8 +21,13 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET', 'traffic-control-secret')
 
 # Enable CORS for GitHub Pages
-CORS(app, resources={r"/api/*": {"origins": "*"}})
-
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "*"}},
+    allow_headers=["X-API-Key", "Content-Type", "Origin"],
+    expose_headers=["Content-Type"],
+    methods=["GET", "POST", "OPTIONS"]
+)
 # ============================================================================
 # API KEY SECURITY
 # ============================================================================
@@ -388,20 +393,29 @@ def export_data():
 
 if __name__ == '__main__':
     print("\n" + "="*70)
-    print("🚦 ADAPTIVE TRAFFIC CONTROL - ALL-IN-ONE API")
+    print("🚦 ADAPTIVE TRAFFIC CONTROL - PRODUCTION API")
     print("="*70)
-
-    # Start background threads
-    threading.Thread(target=mqtt_thread, daemon=True).start()
+    
+    # Start background threads (before app starts)
+    mqtt_thread_obj = threading.Thread(target=mqtt_thread, daemon=True)
+    mqtt_thread_obj.start()
     time.sleep(2)
-
-    threading.Thread(target=sensor_thread, daemon=True).start()
-    threading.Thread(target=controller_thread, daemon=True).start()
-
-    print("\n✓ All components initialized")
-    print("✓ API Key:", API_KEY[:10] + "..." if len(API_KEY) > 10 else API_KEY)
-    print("✓ Ready to serve requests")
-    print("\n" + "="*70 + "\n")
-
+    
+    sensor_thread_obj = threading.Thread(target=sensor_thread, daemon=True)
+    sensor_thread_obj.start()
+    
+    controller_thread_obj = threading.Thread(target=controller_thread, daemon=True)
+    controller_thread_obj.start()
+    
+    print("\n✓ MQTT thread: started")
+    print("✓ Sensor simulator: started")
+    print("✓ Traffic controller: started")
+    print("✓ API Key:", os.getenv('API_KEY', 'NOT SET')[:10] + "...")
+    print("✓ MQTT Broker:", os.getenv('MQTT_HOST', 'localhost'))
+    print("\n" + "="*70)
+    print("✓ PRODUCTION API READY - Listening on all interfaces")
+    print("="*70 + "\n")
+    
     port = int(os.getenv('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    # Use gunicorn in production, but allow direct run for testing
+    socketio.run(app, host='0.0.0.0', port=port, debug=False, allow_unsafe_werkzeug=True)
