@@ -319,6 +319,9 @@ def controller_thread():
 # ============================================================================
 # REST API ENDPOINTS
 # ============================================================================
+@app.route('/version')
+def version():
+return {'build': '2025-11-08-1', 'status': 'ok'}
 
 @app.route('/health', methods=['GET'])
 def health():
