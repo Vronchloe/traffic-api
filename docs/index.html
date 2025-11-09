@@ -1,1 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Traffic Signal Control Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🚦 Adaptive IoT Traffic Signal Control</h1>
+                <p class="subtitle">Real-Time MQTT-Based Traffic Optimization System</p>
+                <div class="student-info">
+                    <span><strong>Student:</strong> {{ name }}</span>
+                    <span><strong>Reg. No:</strong> {{ register_no }}</span>
+                    <span><strong>Status:</strong> <span class="status-indicator" id="mqtt-status">Connecting...</span></span>
+                </div>
+                <!-- ================= NEW CONTROL BAR ================= -->
+                <div class="top-control-bar">
+                    <button class="btn btn-secondary" id="reset-btn">🔄 Reset Graphs</button>
+                    <button class="btn btn-danger" id="stop-btn">⏹️ Stop</button>
+                    <button class="btn btn-info" id="developed-btn">👨‍💻 Developed By</button>
+                    <button class="btn btn-warning" id="learn-btn">📘 Learn</button>
+                    <button class="btn btn-success" id="help-btn">🧠 Help</button>
+                    <button class="btn btn-dark" id="download-btn">⬇️ Download</button>
+                </div>
 
+                <!-- Collapsible info box -->
+                <div id="info-window" class="info-window hidden"></div>
+                <!-- ==================================================== -->
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-grid">            
+
+            <!-- System Metrics -->
+            <div class="metrics-row">
+                <div class="metric-box">
+                    <div class="metric-value" id="cycle-count">0</div>
+                    <div class="metric-label">Cycles</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value" id="latency-value">--</div>
+                    <div class="metric-label">Latency (ms)</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value" id="messages-received">0</div>
+                    <div class="metric-label">Messages</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value" id="message-loss">0</div>
+                    <div class="metric-label">Lost Msgs</div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Analytics and Graphs -->
+            <div class="chart-grid">
+                <!-- Charts -->
+                <div class="chart-box">
+                    <h3>Traffic Density Trend</h3>
+                    <canvas id="density-chart"></canvas>
+                </div>
+
+                <div class="chart-box">
+                    <h3>Green Time Allocation</h3>
+                    <canvas id="greentime-chart"></canvas>
+                </div>
+
+                <div class="chart-box">
+                    <h3>Protocol Latency Distribution</h3>
+                    <canvas id="latency-chart"></canvas>
+                </div>
+
+                <div class="chart-box">
+                    <h3>Lane Performance</h3>
+                    <canvas id="performance-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Left Panel: Intersection Visualization -->
+            <div class="bottom-section">
+                <!-- Signal Status Table -->
+                <div class="status-table">
+                    <h3>Signal Status</h3>
+                    <table>
+                        <tr>
+                            <th>Lane</th>
+                            <th>Density</th>
+                            <th>Green Time</th>
+                            <th>Status</th>
+                        </tr>
+                        <tr>
+                            <td>🔴 North</td>
+                            <td><span id="north-density">--</span>%</td>
+                            <td><span id="north-green-time">--</span>s</td>
+                            <td><span class="status-badge" id="north-status">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>🔵 South</td>
+                            <td><span id="south-density">--</span>%</td>
+                            <td><span id="south-green-time">--</span>s</td>
+                            <td><span class="status-badge" id="south-status">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>🟢 East</td>
+                            <td><span id="east-density">--</span>%</td>
+                            <td><span id="east-green-time">--</span>s</td>
+                            <td><span class="status-badge" id="east-status">--</span></td>
+                        </tr>
+                        <tr>
+                            <td>🟡 West</td>
+                            <td><span id="west-density">--</span>%</td>
+                            <td><span id="west-green-time">--</span>s</td>
+                            <td><span class="status-badge" id="west-status">--</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!--Live Intersection View Box -->
+                <div class="intersection-box">
+                    <h2>Live Intersection View</h2>
+                    <svg id="intersection-svg" viewBox="0 0 400 400" width="100%" height="100%">
+                        <!-- Road background -->
+                        <rect x="0" y="0" width="400" height="400" fill="#2c3e50"/>
+
+                        <!-- North road -->
+                        <rect x="150" y="0" width="100" height="150" fill="#34495e"/>
+                        <!-- North lane markers -->
+                        <line x1="180" y1="0" x2="180" y2="150" stroke="#f39c12" stroke-width="2" stroke-dasharray="10,10"/>
+                        <line x1="220" y1="0" x2="220" y2="150" stroke="#f39c12" stroke-width="2" stroke-dasharray="10,10"/>
+
+                        <!-- South road -->
+                        <rect x="150" y="250" width="100" height="150" fill="#34495e"/>
+                        <!-- South lane markers -->
+                        <line x1="180" y1="250" x2="180" y2="400" stroke="#f39c12" stroke-width="2" stroke-dasharray="10,10"/>
+                        <line x1="220" y1="250" x2="220" y2="400" stroke="#f39c12" stroke-width="2" stroke-dasharray="10,10"/>
+
+                        <!-- East road -->
+                        <rect x="250" y="150" width="150" height="100" fill="#34495e"/>
+                        <!-- East lane markers -->
+                        <line x1="250" y1="180" x2="400" y2="180" stroke="#f39c12" stroke-width="2" stroke-dasharray="10,10"/>
+                        <line x1="250" y1="220" x2="400" y2="220" stroke="#f39c12" stroke-width="2" stroke-dasharray="10,10"/>
+
+                        <!-- West road -->
+                        <rect x="0" y="150" width="150" height="100" fill="#34495e"/>
+                        <!-- West lane markers -->
+                        <line x1="0" y1="180" x2="150" y2="180" stroke="#f39c12" stroke-width="2" stroke-dasharray="10,10"/>
+                        <line x1="0" y1="220" x2="150" y2="220" stroke="#f39c12" stroke-width="2" stroke-dasharray="10,10"/>
+
+                        <!-- Intersection center -->
+                        <rect x="150" y="150" width="100" height="100" fill="#ecf0f1"/>
+
+                        <!-- Traffic signal lights (north) -->
+                        <g id="north-lights" transform="translate(200, 140)">
+                            <circle cx="-20" cy="0" r="8" class="signal-light" id="north-red" fill="#c0392b"/>
+                            <circle cx="0" cy="0" r="8" class="signal-light" id="north-yellow" fill="#555"/>
+                            <circle cx="20" cy="0" r="8" class="signal-light" id="north-green" fill="#555"/>
+                        </g>
+
+                        <!-- Traffic signal lights (south) -->
+                        <g id="south-lights" transform="translate(200, 260)">
+                            <circle cx="-20" cy="0" r="8" class="signal-light" id="south-red" fill="#c0392b"/>
+                            <circle cx="0" cy="0" r="8" class="signal-light" id="south-yellow" fill="#555"/>
+                            <circle cx="20" cy="0" r="8" class="signal-light" id="south-green" fill="#555"/>
+                        </g>
+
+                        <!-- Traffic signal lights (east) -->
+                        <g id="east-lights" transform="translate(260, 200)">
+                            <circle cx="0" cy="-20" r="8" class="signal-light" id="east-red" fill="#c0392b"/>
+                            <circle cx="0" cy="0" r="8" class="signal-light" id="east-yellow" fill="#555"/>
+                            <circle cx="0" cy="20" r="8" class="signal-light" id="east-green" fill="#555"/>
+                        </g>
+
+                        <!-- Traffic signal lights (west) -->
+                        <g id="west-lights" transform="translate(140, 200)">
+                            <circle cx="0" cy="-20" r="8" class="signal-light" id="west-red" fill="#c0392b"/>
+                            <circle cx="0" cy="0" r="8" class="signal-light" id="west-yellow" fill="#555"/>
+                            <circle cx="0" cy="20" r="8" class="signal-light" id="west-green" fill="#555"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Adaptive IoT-Based Traffic Signal Control using MQTT Protocol | Student: Arman Ranjan (23BCE1731)</p>
+            <p>Real-Time System Status: <span id="footer-status">Initializing...</span></p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- JSZip and FileSaver for packaging and downloading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="static/js/config.js"></script>
+    <script src="static/js/script.js"></script>
+</body>
+</html>
